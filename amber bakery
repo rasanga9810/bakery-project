@@ -1,0 +1,422 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
+struct Customer
+{
+    string username;
+    string password;
+    string name;
+};
+
+struct Item
+{
+    string name;
+    string description;
+    string price;
+};
+
+// Function prototypes
+void registerCustomer();
+bool loginCustomer(string& loggedInUsername);
+void placeOrder(const string& username);
+void viewOrders();
+void addItem();
+void viewItems();
+bool loginAdmin();
+void viewCustomers();
+void enterCompanyDetails();
+void viewCompanyDetails();
+void adminMenu();
+void customerMenu(const string& loggedInUsername);
+
+int main()
+{
+    int choice;
+    string loggedInUsername;
+
+    while (true)
+    {
+        cout << "-----------------------------" << endl;
+        cout << "WELCOME TO Amber bakery automated billing system" << endl;
+        cout << "-----------------------------" << endl;
+        cout << "1. Register as a customer" << endl;
+        cout << "2. Customer Login" << endl;
+        cout << "3. Admin Login" << endl;
+        cout << "4. Exit" << endl;
+        cout << "-----------------------------" << endl;
+        cout << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+        cout << endl;
+
+        switch (choice)
+        {
+        case 1:
+            registerCustomer();
+            break;
+        case 2:
+            if (loginCustomer(loggedInUsername))
+            {
+                customerMenu(loggedInUsername);
+            }
+            else
+            {
+                cout << "Login failed. Invalid username or password." << endl;
+            }
+            break;
+        case 3:
+            if (loginAdmin())
+            {
+                adminMenu();
+            }
+            else
+            {
+                cout << "Admin login failed. Invalid username or password." << endl;
+            }
+            break;
+        case 4:
+            cout << "Exiting the program. Goodbye!" << endl;
+            return 0;
+        default:
+            cout << "Invalid choice. Please try again." << endl;
+            break;
+        }
+
+        cout << endl;
+    }
+
+    return 0;
+}
+
+void registerCustomer()
+{
+    string username, password, name;
+
+    cout << "Enter username: ";
+    cin >> username;
+
+    cout << "Enter password: ";
+    cin >> password;
+
+    cout << "Enter name: ";
+    cin.ignore();
+    getline(cin, name);
+
+    Customer customer;
+    customer.username = username;
+    customer.password = password;
+    customer.name = name;
+
+    ofstream file("customers.txt", ios::app);
+    if (file.is_open())
+    {
+        file << customer.username << "- " << customer.password << "- " << customer.name << endl;
+        file.close();
+        cout << "Registration successful!" << endl;
+    }
+    else
+    {
+        cout << "Unable to open file." << endl;
+    }
+}
+
+bool loginCustomer(string& loggedInUsername)
+{
+    string username, password;
+
+    cout << "Enter username: ";
+    cin >> username;
+
+    cout << "Enter password: ";
+    cin >> password;
+    cout << endl;
+
+    ifstream file("customers.txt");
+
+    if (file.is_open() && file.peek() != ifstream::traits_type::eof())
+    {
+        string fileUsername, filePassword, name;
+        while (file >> fileUsername >> filePassword >> name)
+        {
+            if (fileUsername == username && filePassword == password)
+            {
+                loggedInUsername = username;
+                file.close();
+                return true;
+            }
+        }
+        file.close();
+    }
+    else
+    {
+        file.close();
+        return false;
+    }
+
+    return false;
+}
+
+void placeOrder(const string& username)
+{
+    string itemName;
+
+    cout << "Enter the item name you want to buy: ";
+    cin.ignore();
+    getline(cin, itemName);
+
+    ofstream file("orders.txt", ios::app);
+    if (file.is_open())
+    {
+        file << "Customer: " << username << endl;
+        file << "Item: " << itemName << endl;
+        file << endl;
+        file.close();
+
+        cout << "Order placed successfully!" << endl;
+    }
+    else
+    {
+        cout << "Unable to open file." << endl;
+    }
+}
+
+void viewOrders()
+{
+    cout << "<<Customer Orders>>" << endl;
+
+    ifstream file("orders.txt");
+    if (file.is_open())
+    {
+        string line;
+        while (getline(file, line))
+        {
+            cout << line << endl;
+        }
+        file.close();
+    }
+    else
+    {
+        cout << "Unable to open file." << endl;
+    }
+}
+
+void addItem()
+{
+    string name, description, price;
+
+    cout << "Enter Item name: ";
+    cin.ignore();
+    getline(cin, name);
+
+    cout << "Enter Item description: ";
+    getline(cin, description);
+
+    cout << "Enter Item price: ";
+    cin >> price;
+
+    Item item;
+    item.name = name;
+    item.description = description;
+    item.price = price;
+
+    ofstream file("items.txt", ios::app);
+    if (file.is_open())
+    {
+        file << item.name << endl;
+        file << item.description << endl;
+        file << item.price << endl;
+        file.close();
+        cout << "Item added successfully!" << endl;
+    }
+    else
+    {
+        cout << "Unable to open file." << endl;
+    }
+}
+
+void viewItems()
+{
+    cout << "List of available items:" << endl;
+
+    ifstream file("items.txt");
+    if (file.is_open())
+    {
+        string item;
+        while (getline(file, item))
+        {
+            cout << "- " << item << endl;
+        }
+        file.close();
+    }
+    else
+    {
+        cout << "Unable to open file." << endl;
+    }
+}
+
+bool loginAdmin()
+{
+    string adminUsername, adminPassword;
+
+    cout << "Enter admin username: ";
+    cin >> adminUsername;
+
+    cout << "Enter admin password: ";
+    cin >> adminPassword;
+
+    return adminUsername == "admin" && adminPassword == "admin123";
+}
+
+void viewCustomers()
+{
+    cout << "List of registered customers:" << endl;
+
+    ifstream file("customers.txt");
+    if (file.is_open())
+    {
+        string fileUsername, filePassword, name;
+        while (file >> fileUsername >> filePassword >> name)
+        {
+            cout << "Username: " << fileUsername << " Name: " << name << endl;
+        }
+        file.close();
+    }
+    else
+    {
+        cout << "Unable to open file." << endl;
+    }
+}
+
+void enterCompanyDetails()
+{
+    string companyName, companyDetails;
+
+    cout << "Enter company name: ";
+    cin.ignore();
+    getline(cin, companyName);
+
+    cout << "Enter company details: ";
+    getline(cin, companyDetails);
+
+    ofstream file("company_details.txt", ios::app);
+    if (file.is_open())
+    {
+        file << companyName << endl;
+        file << companyDetails << endl;
+        file.close();
+        cout << "Company details added successfully!" << endl;
+    }
+    else
+    {
+        cout << "Unable to open file." << endl;
+    }
+}
+
+void viewCompanyDetails()
+{
+    cout << "Company details:" << endl;
+
+    ifstream file("company_details.txt");
+    if (file.is_open())
+    {
+        string companyName, companyDetails;
+       while (getline(file, companyName) && getline(file, companyDetails))
+         {
+            cout << "Company Name: " << companyName << endl;
+            cout << "Company Details: " << companyDetails << endl;
+            cout << endl;
+        }
+        file.close();
+    }
+    else
+    {
+        cout << "Unable to open file." << endl;
+    }
+}
+
+void adminMenu()
+{
+    while (true)
+    {
+        int choice;
+        cout << endl;
+        cout << "Admin Menu" << endl;
+        cout << "1. View Customer List" << endl;
+        cout << "2. View Company Details" << endl;
+        cout << "3. Enter Company Details" << endl;
+        cout << "4. View Orders" << endl;
+        cout << "5. Add Items to the List" << endl;
+        cout << "6. Log out and Return to Main Menu" << endl;
+        cout << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+            viewCustomers();
+            break;
+        case 2:
+            viewCompanyDetails();
+            break;
+        case 3:
+            enterCompanyDetails();
+            break;
+        case 4:
+            viewOrders();
+            break;
+        case 5:
+            addItem();
+            break;
+        case 6:
+            cout << "Returning to the main menu." << endl;
+            return;
+        default:
+            cout << "Invalid choice. Please try again." << endl;
+            break;
+        }
+
+        cout << endl;
+    }
+}
+
+void customerMenu(const string& loggedInUsername)
+{
+    while (true)
+    {
+        int choice;
+        cout << "Customer Menu" << endl;
+        cout << "1. View Available Items" << endl;
+        cout << "2. Place an Order" << endl;
+        cout << "3. View Company Details" << endl;
+        cout << "4. Log out and Return to Main Menu" << endl;
+        cout << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+        cout << endl;
+
+        switch (choice)
+        {
+        case 1:
+            viewItems();
+            break;
+        case 2:
+            placeOrder(loggedInUsername);
+            break;
+        case 3:
+            viewCompanyDetails();
+            break;
+        case 4:
+            cout << "Returning to the main menu." << endl;
+            return;
+        default:
+            cout << "Invalid choice. Please try again." << endl;
+            break;
+        }
+
+        cout << endl;
+    }
+}
